@@ -1,4 +1,4 @@
-package com.example.powpow_flutter
+package com.example.powpow
 
 import io.flutter.embedding.android.FlutterActivity
 
