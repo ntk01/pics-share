@@ -1,51 +1,83 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:crypto/crypto.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:powpow/photo_detail_page.dart';
+import 'package:powpow/profile_page.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
-
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(App());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+const MaterialColor white = MaterialColor(
+  0xFFFFFFFF,
+  <int, Color>{
+    50: Color(0xFFFFFFFF),
+    100: Color(0xFFFFFFFF),
+    200: Color(0xFFFFFFFF),
+    300: Color(0xFFFFFFFF),
+    400: Color(0xFFFFFFFF),
+    500: Color(0xFFFFFFFF),
+    600: Color(0xFFFFFFFF),
+    700: Color(0xFFFFFFFF),
+    800: Color(0xFFFFFFFF),
+    900: Color(0xFFFFFFFF),
+  },
+);
 
+class App extends StatefulWidget {
+  @override
+  _AppState createState() => _AppState();
+}
+
+class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(primarySwatch: white),
       home: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: const Text('powpow'),
-          backgroundColor: Colors.transparent
+          title: const Text(
+            'PowPow',
+          ),
         ),
-        endDrawer: Drawer(
-          child: ListView(
-            children: const <Widget>[
-              SizedBox(
-                height: 48,
-                child: DrawerHeader(child: Text('Settings'))
-              ),
-              ListTile(
-                title: Text('Account'),
-              ),
-              ListTile(
-                title: Text('Balance'),
-              ),
-              ListTile(
-                title: Text('Log out'),
-              )
-            ],
+        body: Container(
+          width: double.infinity,
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+            itemCount: 20,
+            itemBuilder: (BuildContext context, int index) {
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PhotoDetailPage()),
+                  );
+                },
+                child: Column(
+                  children: [Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(1.0, 0.0, 1.0, 2.0),
+                      child: Image.network('https://flutter.github.io/assets-for-api-docs/assets/widgets/owl-2.jpg',),
+                    ),
+                  )],
+                ),
+              );
+            },
           ),
         ),
         bottomNavigationBar: BottomAppBar(
-          color: Colors.black,
           notchMargin: 6.0,
           shape: const AutomaticNotchedShape(
             RoundedRectangleBorder(),
-            StadiumBorder(
-              side: BorderSide()
-            )
+            StadiumBorder(side: BorderSide()),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -54,33 +86,45 @@ class MyApp extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.timeline_outlined,
-                      color: Colors.white,
-                    )
-                ),
-                IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.find_in_page_outlined,
-                      color: Colors.white,
-                    )
-                ),
-                IconButton(
                   onPressed: () {},
-                  icon: const Icon(
-                    Icons.person_outline,
-                    color: Colors.white,
-                  ),
+                  icon: const Icon(Icons.timeline_outlined),
+                ),
+                IconButton(
+                  onPressed: () {
+                    late File _image;
+                    final ImagePicker _picker = ImagePicker();
+                    Future _upload() async {
+                      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+                      setState(() {
+                        _image = File(pickedFile!.path);
+                      });
+                      FirebaseStorage storage = FirebaseStorage.instance;
+                      try {
+                        final _encoded = utf8.encode(p.basename(pickedFile!.path) + DateTime.now().millisecondsSinceEpoch.toString());
+                        final _fileName = sha256.convert(_encoded);
+                        await storage.ref('uploaded/${_fileName.toString()}').putFile(_image);
+                      } catch (e) {
+                        print(e);
+                      }
+                    }
+                    _upload();
+                  },
+                  icon: const Icon(Icons.add_a_photo_outlined),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ProfilePage(),),
+                    );
+                  },
+                  icon: const Icon(Icons.person_outline),
                 ),
               ],
             ),
           ),
         ),
-      )
+      ),
     );
   }
 }
-
-final FirebaseAuth _auth = FirebaseAuth.instance;
