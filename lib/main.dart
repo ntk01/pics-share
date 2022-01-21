@@ -45,7 +45,7 @@ class _AppState extends State<App> {
         appBar: AppBar(
           centerTitle: true,
           title: const Text(
-            'PowPow',
+            'Pics Share',
           ),
         ),
         body: Container(

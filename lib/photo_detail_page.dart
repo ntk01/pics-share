@@ -106,7 +106,7 @@ class _PhotoListState extends State<PhotoList> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
-          'PowPow',
+          'Pics Share',
         ),
       ),
       body: StreamBuilder<QuerySnapshot<Photo>>(

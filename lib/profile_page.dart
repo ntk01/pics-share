@@ -12,7 +12,7 @@ class ProfilePage extends StatelessWidget {
         appBar: AppBar(
           centerTitle: true,
           title: const Text(
-            'PowPow',
+            'Pics Share',
           ),
         ),
         body: const Center(),
