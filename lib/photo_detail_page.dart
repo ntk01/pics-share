@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:powpow/main.dart';
-import 'package:powpow/profile_page.dart';
+import 'package:pics_share/main.dart';
+import 'package:pics_share/profile_page.dart';
 
 final photoRef =
     FirebaseFirestore.instance.collection('photos').withConverter<Photo>(

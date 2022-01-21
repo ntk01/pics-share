@@ -6,8 +6,8 @@ import 'package:path/path.dart' as p;
 import 'package:crypto/crypto.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'package:powpow/photo_detail_page.dart';
-import 'package:powpow/profile_page.dart';
+import 'package:pics_share/photo_detail_page.dart';
+import 'package:pics_share/profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

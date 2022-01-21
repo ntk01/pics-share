@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:powpow/main.dart';
+import 'package:pics_share/main.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({Key? key}) : super(key: key);
