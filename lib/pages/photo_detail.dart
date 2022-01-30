@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pics_share/main.dart';
-import 'package:pics_share/profile_page.dart';
+import 'package:pics_share/pages/timeline.dart';
+import 'package:pics_share/pages/profile.dart';
 
 final photoRef =
     FirebaseFirestore.instance.collection('photos').withConverter<Photo>(
-      fromFirestore: (snapshots, _) => Photo.fromJson(snapshots.data()!),
-      toFirestore: (photo, _) => photo.toJson(),
-    );
+          fromFirestore: (snapshots, _) => Photo.fromJson(snapshots.data()!),
+          toFirestore: (photo, _) => photo.toJson(),
+        );
 
 enum PhotoQuery {
   time,
@@ -22,8 +22,8 @@ extension on Query<Photo> {
   }
 }
 
-class PhotoDetailPage extends StatelessWidget {
-  const PhotoDetailPage({Key? key}) : super(key: key);
+class PhotoDetail extends StatelessWidget {
+  const PhotoDetail({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class PhotoDetailPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => App()),
+                      MaterialPageRoute(builder: (context) => Timeline()),
                     );
                   },
                   icon: const Icon(Icons.timeline_outlined),
@@ -61,7 +61,7 @@ class PhotoDetailPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ProfilePage(),
+                        builder: (context) => const Profile(),
                       ),
                     );
                   },
