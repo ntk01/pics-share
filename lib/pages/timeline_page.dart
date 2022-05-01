@@ -5,47 +5,73 @@ import 'package:path/path.dart' as p;
 import 'package:crypto/crypto.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'package:pics_share/pages/photo_detail.dart';
-import 'package:pics_share/pages/profile.dart';
+import 'package:pics_share/pages/profile_page.dart';
 
-const MaterialColor white = MaterialColor(
-  0xFFFFFFFF,
-  <int, Color>{
-    50: Color(0xFFFFFFFF),
-    100: Color(0xFFFFFFFF),
-    200: Color(0xFFFFFFFF),
-    300: Color(0xFFFFFFFF),
-    400: Color(0xFFFFFFFF),
-    500: Color(0xFFFFFFFF),
-    600: Color(0xFFFFFFFF),
-    700: Color(0xFFFFFFFF),
-    800: Color(0xFFFFFFFF),
-    900: Color(0xFFFFFFFF),
-  },
-);
-
-class Timeline extends StatelessWidget {
-  const Timeline({Key? key}) : super(key: key);
+class TimelinePage extends StatelessWidget {
+  const TimelinePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(primarySwatch: white),
-      home: const TimelineState(),
+      theme: ThemeData(primarySwatch: Colors.teal),
+      home: const TimelinePageState(),
     );
   }
 }
 
-class TimelineState extends StatefulWidget {
-  const TimelineState({Key? key}) : super(key: key);
+class TimelinePageState extends StatefulWidget {
+  const TimelinePageState({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _Timeline();
+    return _TimelinePage();
   }
 }
 
-class _Timeline extends State<TimelineState> {
+class _TimelinePage extends State<TimelinePageState> {
+  FirebaseStorage storage = FirebaseStorage.instance;
+
+  Future<List<Map<String, dynamic>>> _loadImages() async {
+    List<Map<String, dynamic>> files = [];
+
+    final ListResult result = await storage.ref().list();
+    final List<Reference> allFiles = result.items;
+
+    await Future.forEach<Reference>(allFiles, (file) async {
+      final String fileUrl = await file.getDownloadURL();
+      print(fileUrl);
+      final FullMetadata fileMeta = await file.getMetadata();
+      files.add({
+        "url": fileUrl,
+        "path": file.fullPath,
+        "uploaded_by": fileMeta.customMetadata?['uploaded_by'] ?? 'Nobody',
+        "description":
+            fileMeta.customMetadata?['description'] ?? 'No description'
+      });
+    });
+
+    return files;
+  }
+
+  Future<void> _dialogCall(BuildContext context) {
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        content: const Text('You will upload this image.'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'Cancel'),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'OK'),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,12 +89,6 @@ class _Timeline extends State<TimelineState> {
           itemCount: 20,
           itemBuilder: (BuildContext context, int index) {
             return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PhotoDetail()),
-                );
-              },
               child: Column(
                 children: [
                   Expanded(
@@ -98,7 +118,9 @@ class _Timeline extends State<TimelineState> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  _loadImages();
+                },
                 icon: const Icon(Icons.timeline_outlined),
               ),
               IconButton(
@@ -108,6 +130,7 @@ class _Timeline extends State<TimelineState> {
                   Future _upload() async {
                     final pickedFile =
                         await _picker.pickImage(source: ImageSource.gallery);
+                    await _dialogCall(context);
                     setState(() {
                       _image = File(pickedFile!.path);
                     });
@@ -118,7 +141,7 @@ class _Timeline extends State<TimelineState> {
                               DateTime.now().millisecondsSinceEpoch.toString());
                       final _fileName = sha256.convert(_encoded);
                       await storage
-                          .ref('uploaded/${_fileName.toString()}')
+                          .ref('creatives/${_fileName.toString()}')
                           .putFile(_image);
                     } catch (e) {
                       print(e);
@@ -134,7 +157,7 @@ class _Timeline extends State<TimelineState> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const Profile(),
+                      builder: (context) => const ProfilePage(),
                     ),
                   );
                 },

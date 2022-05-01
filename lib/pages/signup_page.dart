@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'signup.dart';
-import 'profile.dart';
+import 'profile_page.dart';
 
-class Login extends StatelessWidget {
-  const Login({Key? key}) : super(key: key);
+class SignUp extends StatelessWidget {
+  const SignUp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: LoginState(),
+      home: SignUpState(),
     );
   }
 }
 
-class LoginState extends StatefulWidget {
-  const LoginState({Key? key}) : super(key: key);
+class SignUpState extends StatefulWidget {
+  const SignUpState({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _Login();
+    return _SignUp();
   }
 }
 
-class _Login extends State<LoginState> {
+class _SignUp extends State<SignUpState> {
   String email = "";
   String password = "";
   String infoText = "";
+  late bool isValidPasswordLength;
 
   final FirebaseAuth auth = FirebaseAuth.instance;
   late UserCredential credential;
@@ -39,6 +39,13 @@ class _Login extends State<LoginState> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            const Padding(
+              padding: EdgeInsets.fromLTRB(25.0, 0, 25.0, 30.0),
+              child: Text(
+                'Sign Up',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(25.0, 0, 25.0, 0),
               child: TextFormField(
@@ -61,7 +68,12 @@ class _Login extends State<LoginState> {
                 obscureText: true,
                 maxLength: 20,
                 onChanged: (String value) {
-                  password = value;
+                  if (value.length < 8) {
+                    isValidPasswordLength = false;
+                  } else {
+                    isValidPasswordLength = true;
+                    password = value;
+                  }
                 },
               ),
             ),
@@ -74,10 +86,9 @@ class _Login extends State<LoginState> {
             ),
             ButtonTheme(
               minWidth: 350.0,
-              // height: 100.0,
               child: ElevatedButton(
                 child: const Text(
-                  'Login',
+                  'Sign Up',
                 ),
                 style: ElevatedButton.styleFrom(
                   primary: Colors.blueAccent,
@@ -87,22 +98,29 @@ class _Login extends State<LoginState> {
                   ),
                 ),
                 onPressed: () async {
-                  try {
-                    credential = await auth.signInWithEmailAndPassword(
-                      email: email,
-                      password: password,
+                  if (isValidPasswordLength) {
+                    try {
+                      credential = await auth.createUserWithEmailAndPassword(
+                        email: email,
+                        password: password,
+                      );
+                      user = credential.user!;
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfilePage(),
+                          ));
+                    } on FirebaseAuthException catch (e) {
+                      setState(() {
+                        infoText = e.message!;
+                      });
+                    }
+                  } else {
+                    setState(
+                      () {
+                        infoText = 'Password is at least 8 characters.';
+                      },
                     );
-                    user = credential.user!;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Profile(userId: user.uid),
-                      ),
-                    );
-                  } on FirebaseAuthException catch (e) {
-                    setState(() {
-                      infoText = e.message!;
-                    });
                   }
                 },
               ),
@@ -110,35 +128,6 @@ class _Login extends State<LoginState> {
           ],
         ),
       ),
-      bottomNavigationBar:
-          Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ButtonTheme(
-            minWidth: 350.0,
-            child: ElevatedButton(
-              child: const Text(
-                'Sign Up',
-              ),
-              style: ElevatedButton.styleFrom(
-                primary: const Color.fromRGBO(255, 255, 255, 0.0),
-                fixedSize: const Size(320, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(50),
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    fullscreenDialog: true,
-                    builder: (BuildContext context) => const SignUp(),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ]),
     );
   }
 }
