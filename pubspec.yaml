@@ -17,6 +17,7 @@ dependencies:
   firebase_storage: ^10.2.5
   cupertino_icons: ^1.0.2
   image_picker: ^0.8.4+4
+  animated_theme_switcher: ^2.0.6
   path: ^1.8.0
   crypto: ^3.0.1
 
