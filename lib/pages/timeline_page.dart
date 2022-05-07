@@ -31,29 +31,7 @@ class TimelinePageState extends StatefulWidget {
 class _TimelinePage extends State<TimelinePageState> {
   FirebaseStorage storage = FirebaseStorage.instance;
 
-  Future<List<Map<String, dynamic>>> _loadImages() async {
-    List<Map<String, dynamic>> files = [];
-
-    final ListResult result = await storage.ref().list();
-    final List<Reference> allFiles = result.items;
-
-    await Future.forEach<Reference>(allFiles, (file) async {
-      final String fileUrl = await file.getDownloadURL();
-      print(fileUrl);
-      final FullMetadata fileMeta = await file.getMetadata();
-      files.add({
-        "url": fileUrl,
-        "path": file.fullPath,
-        "uploaded_by": fileMeta.customMetadata?['uploaded_by'] ?? 'Nobody',
-        "description":
-            fileMeta.customMetadata?['description'] ?? 'No description'
-      });
-    });
-
-    return files;
-  }
-
-  Future<void> _dialogCall(BuildContext context) {
+  _dialogCall(BuildContext context) {
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -72,6 +50,17 @@ class _TimelinePage extends State<TimelinePageState> {
     );
   }
 
+  Future<List<String>> _loadImages() async {
+    List<String> files = [];
+    final ListResult result = await storage.ref().child("creatives").list();
+    final List<Reference> allFiles = result.items;
+    await Future.forEach<Reference>(allFiles, (file) async {
+      final String fileUrl = await file.getDownloadURL();
+      files.add(fileUrl);
+    });
+    return files;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,24 +72,24 @@ class _TimelinePage extends State<TimelinePageState> {
       ),
       body: SizedBox(
         width: double.infinity,
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3),
-          itemCount: 20,
-          itemBuilder: (BuildContext context, int index) {
-            return GestureDetector(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(1.0, 0.0, 1.0, 2.0),
-                      child: Image.network(
-                        'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl-2.jpg',
-                      ),
-                    ),
-                  )
-                ],
-              ),
+        child: FutureBuilder(
+          future: _loadImages(),
+          builder: (context, AsyncSnapshot<List<String>> snapshot) {
+            return GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3),
+              itemCount: snapshot.data?.length ?? 0,
+              itemBuilder: (BuildContext context, int index) {
+                return Container(
+                  padding: const EdgeInsets.fromLTRB(1.0, 0.0, 1.0, 2.0),
+                  child: Image.network(
+                    snapshot.data![index],
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.fitWidth,
+                  ),
+                );
+              },
             );
           },
         ),
